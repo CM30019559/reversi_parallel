@@ -15,15 +15,12 @@ static mailbox* freelist = NULL;  /* list of free mailboxes.  */
 
 static mailbox* mailbox_config(mailbox* mbox, mailbox* prev)
 {
-    mbox->in = 0; // My line of code
-    mbox->out = 0; // My line of code
-    // mbox->data.result = 0; // Unrequired line of code
-    // mbox->data.move_no = 0; // Unrequired line of code
-    // mbox->data.positions_explored = 0; // Unrequired line of code
-    mbox->prev = prev;
-    mbox->item_available = multiprocessor_initSem(0);
-    mbox->space_available = multiprocessor_initSem(MAX_MAILBOX_DATA); // My line of code
-    mbox->mutex = multiprocessor_initSem(1);
+    mbox->in = 0; // Initialise in index to 0
+    mbox->out = 0; // Initialise out index to 0
+    mbox->prev = prev; // Set current pointer of prev to new pointer for prev
+    mbox->item_available = multiprocessor_initSem(0); // Initialise semaphore for item_available using function multiprocessor_initSem to initialise to a value of 0
+    mbox->space_available = multiprocessor_initSem(MAX_MAILBOX_DATA); // Initialise semaphore for space_available using function multiprocessor_initSem to initialise to a value of MAX_MAILBOX_DATA
+    mbox->mutex = multiprocessor_initSem(1); // Initialise semaphore for mutex using function multiprocessor_initSem to initialise to a value of 1
     return mbox;
 }
 
