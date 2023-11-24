@@ -18,6 +18,7 @@
 #include <semaphore.h>
 
 #include "multiprocessor.h"
+#define MAX_MAILBOX_DATA 100 // Constant variable to set number of total entries allowed to be stored in mailbox_data to 100
 
 typedef struct triple_t {
 	int result;
@@ -27,9 +28,9 @@ typedef struct triple_t {
 
 
 typedef struct mailbox_t {
-	triple data[MAX_MAILBOX_DATA]; // My line of code
-	int in; // My line of code
-	int out; // My line of code
+	triple data[MAX_MAILBOX_DATA]; // Array of elements set to size of MAX_MAILBOX_DATA (100 currently), each element is a triple used to store result, move_no and positions_explored
+	int in; // Implements input index for bounded buffer, putting data in at this slot
+	int out; // Implements output index for bounded buffer, sending data out from this slot
 	sem_t* item_available;    /* are there data in the mailbox?  */
 	sem_t* space_available;   /* space for more data in the mailbox.  */
 	sem_t* mutex;             /* access to the mailbox.  */
