@@ -20,18 +20,20 @@
 #include "multiprocessor.h"
 
 typedef struct triple_t {
-  int result;
-  int move_no;
-  int positions_explored;
+	int result;
+	int move_no;
+	int positions_explored;
 } triple;
 
 
 typedef struct mailbox_t {
-  triple data;
-  sem_t *item_available;    /* are there data in the mailbox?  */
-  sem_t *space_available;   /* space for more data in the mailbox.  */
-  sem_t *mutex;             /* access to the mailbox.  */
-  struct mailbox_t *prev;  /* previous mailbox.  */
+	triple data[MAX_MAILBOX_DATA]; // My line of code
+	int in; // My line of code
+	int out; // My line of code
+	sem_t* item_available;    /* are there data in the mailbox?  */
+	sem_t* space_available;   /* space for more data in the mailbox.  */
+	sem_t* mutex;             /* access to the mailbox.  */
+	struct mailbox_t* prev;  /* previous mailbox.  */
 } mailbox;
 
 
@@ -56,15 +58,15 @@ typedef struct mailbox_t {
  *  init - create a single mailbox which can contain a single triple.
  */
 
-EXTERN mailbox *mailbox_init (void);
+EXTERN mailbox* mailbox_init(void);
 
 
 /*
  *  send - send (result, move_no, positions_explored) to the mailbox mbox.
  */
 
-EXTERN void mailbox_send (mailbox *mbox,
-			  int result, int move_no, int positions_explored);
+EXTERN void mailbox_send(mailbox* mbox,
+	int result, int move_no, int positions_explored);
 
 
 /*
@@ -72,9 +74,9 @@ EXTERN void mailbox_send (mailbox *mbox,
  *        mailbox mbox.
  */
 
-EXTERN void mailbox_rec (mailbox *mbox,
-			 int *result, int *move_no,
-			 int *positions_explored);
+EXTERN void mailbox_rec(mailbox* mbox,
+	int* result, int* move_no,
+	int* positions_explored);
 
 #  undef EXTERN
 #endif /* !mailbox_h.  */
