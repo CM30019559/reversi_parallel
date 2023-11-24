@@ -88,19 +88,19 @@ mailbox* mailbox_kill(mailbox* mbox)
  *  send - send (result, move_no, positions_explored) to the mailbox mbox.
  */
 
-void mailbox_send(mailbox* mbox, int result, int move_no, int positions_explored)
+void mailbox_send(mailbox* mbox, int result, int move_no, int positions_explored) // mailbox_send is a producer to the shared buffer, sending the result, move_no and positions_explored to the shared buffer
 {
     // My code
-    multiprocessor_wait(mbox->space_available);
-    multiprocessor_wait(mbox->mutex);
+    multiprocessor_wait(mbox->space_available); // Uses function multiprocessor_wait to wait for semaphore space_available to be available stopping us from overflowing the mailbox
+    multiprocessor_wait(mbox->mutex); // Uses function multiprocessor_wait to wait for semaphore mutex to be available to allow access to the mailbox
 
-    mbox->data[mbox->in].result = result;
-    mbox->data[mbox->in].move_no = move_no;
-    mbox->data[mbox->in].positions_explored = positions_explored;
-    mbox->in = (mbox->in + 1) % MAX_MAILBOX_DATA;
+    mbox->data[mbox->in].result = result; // Adding the data through the in index to the shared buffer for the result value
+    mbox->data[mbox->in].move_no = move_no; // Adding the data through the in index to the shared buffer for the move_no value
+    mbox->data[mbox->in].positions_explored = positions_explored; // Adding the data through the in index to the shared buffer for the positions_explored value
+    mbox->in = (mbox->in + 1) % MAX_MAILBOX_DATA; // This is a loop to increment in index by 1, divide by MAX_MAILBOX_DATA and place remainder into in index ensuring we don't overflow
 
-    multiprocessor_signal(mbox->mutex);
-    multiprocessor_signal(mbox->item_available);
+    multiprocessor_signal(mbox->mutex); // Uses function multiprocessor_signal to signal that an item is being added to the buffer by the semaphore mutex and mutex is now available
+    multiprocessor_signal(mbox->item_available); // Uses function multiprocessor_signal to signal that an item is now available in the buffer using the semaphore item_available
 }
 
 
@@ -109,18 +109,17 @@ void mailbox_send(mailbox* mbox, int result, int move_no, int positions_explored
  *        mailbox mbox.
  */
 
-void mailbox_rec(mailbox* mbox,
-    int* result, int* move_no, int* positions_explored)
+void mailbox_rec(mailbox* mbox, int* result, int* move_no, int* positions_explored) // mailbox_rec is a consumer from the shared buffer, retrieving the result, move_no and positions_explored from the shared buffer
 {
     // My code
-    multiprocessor_wait(mbox->item_available);
-    multiprocessor_wait(mbox->mutex);
+    multiprocessor_wait(mbox->item_available); // Uses function multiprocessor_wait to wait for semaphore item_available to say there is an item available
+    multiprocessor_wait(mbox->mutex); // Uses function multiprocessor_wait to wait for semaphore mutex to be available
 
-    *result = mbox->data[mbox->out].result;
-    *move_no = mbox->data[mbox->out].move_no;
-    *positions_explored = mbox->data[mbox->out].positions_explored;
-    mbox->out = (mbox->out + 1) % MAX_MAILBOX_DATA;
+    *result = mbox->data[mbox->out].result; // Removing the data through the out index from the shared buffer for the result value
+    *move_no = mbox->data[mbox->out].move_no; // Removing the data through the out index from the shared buffer for the move_no value
+    *positions_explored = mbox->data[mbox->out].positions_explored; // Removing the data through the out index from the shared buffer for the positions_explored value
+    mbox->out = (mbox->out + 1) % MAX_MAILBOX_DATA; // This is a loop to increment out index by 1, divide by MAX_MAILBOX_DATA and place remainder into out index ensuring we don't overflow
 
-    multiprocessor_signal(mbox->mutex);
-    multiprocessor_signal(mbox->space_available);
+    multiprocessor_signal(mbox->mutex); // Uses function multiprocessor_signal to signal that an item has been added to the buffer by the semaphore mutex and mutex is now available
+    multiprocessor_signal(mbox->space_available); // Uses function multiprocessor_signal to signal that space is now available in the buffer using the semaphore space_available
 }
