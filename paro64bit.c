@@ -690,46 +690,48 @@ int parallelSearch(int* totalExplored, int* move,
     BITSET64 c, BITSET64 u, int noPlies, int o, int minscore, int maxscore)
 {
     // My code
-    int pid = fork();
-    if (pid == 0)
+    int pid = fork(); // Parent process forks to create a child to process each move on available cores
+    if (pid == 0) // If statement checks whether pid is a child as children processes have pid of 0
     {
-        /* Child is the source which spawns each move on a separate core */
-        int i, currentMove;
-        for (i = 0; i < noOfMoves; i++) /* i in no of moves */
+        // Child is the source which spawns each move on a separate core
+        int i, currentMove; // Initialise variables to store values for the iterator in the loop responsible for looping noOfMoves value and to store currentMove to send to parent
+
+        for (i = 0; i < noOfMoves; i++) // Use noOfMoves to iterate through total number of potential moves
         {
-            multiprocessor_wait(processorAvailable); /* wait for a processor to become available */
-            /* spawn a child process */
-            if (fork() == 0)
+            multiprocessor_wait(processorAvailable); // Uses function multiprocessor_wait to wait for semaphore processorAvailable to be available denoting there is a processor core free
+            
+            if (fork() == 0) // Linux always forks onto available processor, this will force each move to be processed on it's own core
             {
-                /* child must search move i */
-                currentMove = alphaBeta(l[i], c, u, noPlies, o, minscore, maxscore); /* search best move using alphabeta could take many minutes hence parallel */
+                // Children search for move using alphaBeta
+                currentMove = alphaBeta(l[i], c, u, noPlies, o, minscore, maxscore); // Using alphaBeta function work out the currentMove score, passing array of list of moves (l[i]), current board (c), board state after move (u), number of game tree plies, colour (o) and min/max score 
 
-                mailbox_send(barrier, currentMove, i, positionsExplored); /* need to send move back to parent using mailbox_send */
+                mailbox_send(barrier, currentMove, i, positionsExplored); // Passes currentMove, current index (i) and positionsExplored back via mailbox_send using barrier to point to mailbox to use
 
-                multiprocessor_signal(processorAvailable); /* signal that a processor is available */
-                exit();
+                multiprocessor_signal(processorAvailable); // Signal that a processor is available, notifying a wait function that it may continue
+                exit(); // Exit child process, move has been sent to parent
             }
         }
-        exit();
+        exit(); // Exit child process, all potential moves processed
     }
     else
     {
-        /* parent is the sink, which waits for any move to be returned and remembers the best move score */
-        int i, move_score, move_index, positionsExplored;
-        for (i = 0; i < noOfMoves; i++)
+        // Parent is the sink process which awaits any move to be returned and remembers best move score
+        int i, move_score, move_index, positionsExplored; // Initialise variables to store index in the loop, move_score, move_index and positionsExplored
+
+        for (i = 0; i < noOfMoves; i++) // Use noOfMoves to iterate through total number of moves sent to parent
         {
-            printf("parent waiting for a result\n");
-            mailbox_rec(barrier, &move_score, &move_index, &positionsExplored);
-            printf("... parent has received a result: move %d has a score of %d after exploring %d positions\n", move_index, move_score, positionsExplored);
-            *totalExplored += positionsExplored; /* add count to the running total */
-            if (move_score > best)
+            printf("parent waiting for a result\n"); // Output message stating parent has received a result
+            mailbox_rec(barrier, &move_score, &move_index, &positionsExplored); // Receives the move from mailbox and stores in variables created above to compare best move
+            printf("... parent has received a result: move %d has a score of %d after exploring %d positions\n", move_index, move_score, positionsExplored); // Output message stating the potential move score and number of explored positions
+            *totalExplored += positionsExplored; // Increment total number of explored positions by positionsExplored this time
+            if (move_score > best) // If statement checks if current move score is better than current best move score
             {
-                best = move_score;
-                *move = l[move_index];
+                best = move_score; // Make the best value score equal to the current move score
+                *move = l[move_index]; // Set move pointer to index in list of moves current index
             }
         }
     }
-    return best;
+    return best; // Return the best move, this function is called by decideMove so this returns the best move to decideMove function which will make the move
 }
 #endif
 
