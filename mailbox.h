@@ -31,10 +31,10 @@ typedef struct mailbox_t {
 	triple data[MAX_MAILBOX_DATA]; // Array of elements set to size of MAX_MAILBOX_DATA (100 currently), each element is a triple used to store result, move_no and positions_explored
 	int in; // Implements input index for bounded buffer, putting data in at this slot
 	int out; // Implements output index for bounded buffer, sending data out from this slot
-	sem_t* item_available;    /* are there data in the mailbox?  */
-	sem_t* space_available;   /* space for more data in the mailbox.  */
+	sem_t* item_available;    /* is there data in the mailbox?  */
+	sem_t* space_available;   /* is there space for more data in the mailbox?  */
 	sem_t* mutex;             /* access to the mailbox.  */
-	struct mailbox_t* prev;  /* previous mailbox.  */
+	struct mailbox_t* prev;  /* pointer to previous mailbox.  */
 } mailbox;
 
 
@@ -80,4 +80,4 @@ EXTERN void mailbox_rec(mailbox* mbox,
 	int* positions_explored);
 
 #  undef EXTERN
-#endif /* !mailbox_h.  */
+#endif /* !mailbox_h.  */ 
